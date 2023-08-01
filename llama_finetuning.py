@@ -65,11 +65,43 @@ import torch
 import torch.cuda.nccl as nccl
 import torch.distributed as dist
 from transformers.models.llama.modeling_llama import LlamaDecoderLayer
+from torch.utils.data import random_split
 
 
 def main(**kwargs):
     # Update the configuration for the training and sharding process
     update_config((train_config, fsdp_config), **kwargs)
+
+    # Load the tokenizer and add special tokens
+    tokenizer = AutoTokenizer.from_pretrained(train_config.model_name)
+    tokenizer.add_special_tokens(
+        {
+
+            "pad_token": "<PAD>",
+        }
+    )
+
+    dataset_config = generate_dataset_config(train_config, kwargs)
+
+    # Load and preprocess the dataset for training and validation
+    dataset_train = get_preprocessed_dataset(
+        tokenizer,
+        dataset_config,
+        split="train",
+    )
+
+    if len(dataset_config.test_split) > 0:
+        dataset_val = get_preprocessed_dataset(
+            tokenizer,
+            dataset_config,
+            split="test",
+        )
+    else:
+        # split the data set to training data and validation data
+        dataset = dataset_train
+        train_size = int(0.9 * len(dataset))
+        dataset_train, dataset_val = random_split(dataset, [train_size, len(dataset) - train_size])
+
 
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(train_config.seed)
@@ -90,7 +122,7 @@ def main(**kwargs):
     gradient_accumulation_steps = train_config.batch_size_training // train_config.micro_batch_size
      
     # Load the pre-trained model and setup its configuration
-    model = LlamaForCausalLM.from_pretrained(
+    model = AutoModelForCausalLM.from_pretrained(
         train_config.model_name,
         load_in_8bit=True if train_config.quantization else None,
         device_map="auto" if train_config.quantization else None,
@@ -106,14 +138,6 @@ def main(**kwargs):
     if train_config.enable_fsdp and fsdp_config.pure_bf16:
         model.to(torch.bfloat16)
 
-    # Load the tokenizer and add special tokens
-    tokenizer = LlamaTokenizer.from_pretrained(train_config.model_name)
-    tokenizer.add_special_tokens(
-            {
-            
-                "pad_token": "<PAD>",
-            }
-        )
     if train_config.use_peft:
         peft_config = generate_peft_config(train_config, kwargs)
         model = get_peft_model(model, peft_config)
@@ -141,23 +165,10 @@ def main(**kwargs):
     elif not train_config.quantization and not train_config.enable_fsdp:
         model.to("cuda")
 
-    dataset_config = generate_dataset_config(train_config, kwargs)
-    
-     # Load and preprocess the dataset for training and validation
-    dataset_train = get_preprocessed_dataset(
-        tokenizer,
-        dataset_config,
-        split="train",
-    )
-    
+
     if not train_config.enable_fsdp or rank == 0:
         print(f"--> Training Set Length = {len(dataset_train)}")
 
-    dataset_val = get_preprocessed_dataset(
-        tokenizer,
-        dataset_config,
-        split="test",
-    )
     if not train_config.enable_fsdp or rank == 0:
             print(f"--> Validation Set Length = {len(dataset_val)}")
 
