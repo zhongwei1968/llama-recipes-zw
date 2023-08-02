@@ -27,7 +27,7 @@ class TextCorpus(Dataset):
             dataset = load_dataset("text", data_files={"train": dataset_config.data_path},
                                    download_mode="force_redownload")
 
-            dataset = dataset.map(self.add_eos, batched=True, batch_size=1000, num_proc=1, remove_columns=["text"])
+            dataset = dataset.map(self.add_eos, batched=True, batch_size=10000, num_proc=4, remove_columns=["text"])
 
             self.dataset = dataset.map(
                 lambda sample: tokenizer(sample["text2"]),
@@ -65,7 +65,7 @@ class TextCorpus(Dataset):
         # If the last line is empty, append the EOS token
         if consecutive_empty_lines >= 2 or (consecutive_empty_lines == 1 and lines[-1] != eos_token):
             # not add eos_token
-            lines.append(eos_token)
+            # lines.append(eos_token)
             articles.append('\n'.join(lines))
 
         return {'text2': articles}
