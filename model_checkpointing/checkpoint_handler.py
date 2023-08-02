@@ -153,13 +153,11 @@ def save_model_checkpoint(
         save_dir = Path.cwd() / folder_name
         save_dir.mkdir(parents=True, exist_ok=True)
         model_base_name = os.path.basename(cfg.model_name)
-        save_name = model_base_name + "-" + str(epoch)
+        save_name = model_base_name + "-" + str(epoch) + ".pt"
         save_full_path = str(save_dir) + "/" + save_name
 
         # save model
-        # torch.save(cpu_state, save_full_path)
-
-        model.save_pretrained(save_full_path)
+        torch.save(cpu_state, save_full_path)
         
         print(f"model checkpoint saved for epoch {epoch} at {save_full_path}\n")
       
