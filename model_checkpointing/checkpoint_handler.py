@@ -5,6 +5,7 @@ from pathlib import Path
 from datetime import datetime
 import torch
 import time
+import os
 
 from torch.distributed.fsdp import (
     FullyShardedDataParallel as FSDP,
@@ -151,7 +152,8 @@ def save_model_checkpoint(
         )
         save_dir = Path.cwd() / folder_name
         save_dir.mkdir(parents=True, exist_ok=True)
-        save_name = cfg.model_name + "-" + str(epoch) + ".pt"
+        model_base_name = os.path.basename(cfg.model_name)
+        save_name = model_base_name + "-" + str(epoch) + ".pt"
         save_full_path = str(save_dir) + "/" + save_name
 
         # save model
