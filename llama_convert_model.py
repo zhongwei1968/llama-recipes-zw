@@ -55,4 +55,8 @@ if __name__ == "__main__":
     print("start save pretrained model")
     model.save_pretrained(args_c.save_output)
 
+    tokenizer = AutoTokenizer.from_pretrained(args_c.base_model_path)
+    tokenizer.save_pretrained(args_c.save_output)
+
+
 
