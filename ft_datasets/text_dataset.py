@@ -32,6 +32,8 @@ class TextCorpus(Dataset):
             self.dataset = dataset.map(
                 lambda sample: tokenizer(sample["text2"]),
                 batched=True,
+                batch_size=1000,
+                num_proc=4,
                 remove_columns=["text2"],
             )
 
