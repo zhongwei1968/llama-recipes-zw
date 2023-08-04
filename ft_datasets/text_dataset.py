@@ -25,7 +25,7 @@ class TextCorpus(Dataset):
         try:
             # load and process the data set
             dataset = load_dataset("text", data_files={"train": dataset_config.data_path},
-                                   download_mode="force_redownload")
+                                   download_mode="reuse_dataset_if_exists")  # download_mode="force_redownload"
 
             dataset = dataset.map(self.add_eos, batched=True, batch_size=10000, num_proc=4, remove_columns=["text"])
 
@@ -33,7 +33,7 @@ class TextCorpus(Dataset):
                 lambda sample: tokenizer(sample["text2"]),
                 batched=True,
                 batch_size=1000,
-                num_proc=4,
+                num_proc=6,
                 remove_columns=["text2"],
             )
 
