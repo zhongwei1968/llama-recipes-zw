@@ -33,5 +33,5 @@ class ssoj_dataset:
     dataset: str = "ssoj_dataset"
     train_split: str = "train"
     test_split: str = ""
-    data_path: str = "ft_datasets/finetuning_sso_test.txt"
-    input_length: int = 2048
+    data_path: str = "ft_datasets/finetuning_sso_j.txt"
+    input_length: int = 4096
