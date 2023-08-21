@@ -1,0 +1,1 @@
+python llama_convert_model.py -base_model_path /raid2/model/llama2_hf/Llama-2-7b-hf -finetune_dir model_checkpoints/fine-tuned-/raid2/model/llama2_hf/Llama-2-7b-hf -pt Llama-2-7b-hf-1.pt -save_output /raid2/model/save_model_llama2/Llama-2-7b-hf-1
